@@ -1,0 +1,13 @@
+﻿@model UserModel[]
+<h1>
+	Users
+</h1>
+
+@if (Model.Length != 0) @*what is the difference from Model.Articles.Any()*@
+{
+	foreach (var user in Model)
+	{
+		<partial name="_UserPreview" model="@user" />
+		
+	}
+} 

@@ -1,0 +1,28 @@
+﻿@model UserModel
+
+<div class="card ">
+	<div class="card-body">
+		<div class="row">
+
+			<div class="col-10">
+				<h5 class="card-title">@Model.Name</h5>
+				<div>@Model.UserModelId</div>
+			</div>
+			<div class="col-1">
+				<div>
+					@Model.RoleName
+				</div>
+			</div>
+			<div class="col-1">
+
+				@if (Model.Name != Context.User.Identity.Name)
+				{
+					<a asp-action="ChangeRole" asp-route-id="@Model.UserModelId" class="btn btn-primary">Change Role</a>
+
+				}
+			</div>
+		</div>
+
+	</div>
+
+</div>

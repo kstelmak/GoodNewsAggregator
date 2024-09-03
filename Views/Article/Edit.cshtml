@@ -1,0 +1,71 @@
+﻿ @model ArticleWithCategoriesAndSourcesModel
+<h1>
+    Edit article
+</h1>
+@*Should it be allowed to edit OriginalUrl, PublicationDate & Source?*@
+<form asp-action="Edit" asp-controller="Article" method="post">
+    
+    <div class="mb-2 col-12 col-lg-7" >
+        <label class="form-label" asp-for="Article.ArticleModelId">ArticleId</label>
+        <input class ="form-control" readonly class="form-control-plaintext" asp-for="Article.ArticleModelId" />
+    </div>
+
+    <div class="mb-2 col-12 col-lg-7">
+        <label class="form-label"  asp-for="Article.CategoryId"></label>
+        <select class ="form-control" asp-for="Article.CategoryId">
+            @foreach (var c in Model.Categories)
+            {
+                <option value=@c.Key>@c.Value</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-2 col-12 col-lg-7">
+        <label class="form-label"  asp-for="Article.Title"></label>
+        <input class ="form-control" asp-for="Article.Title" />
+        <span class="text-danger" asp-validation-for="Article.Title"></span>
+    </div>
+
+    <div class="mb-2 col-12 col-lg-7">
+        <div>
+            <label class="form-label" asp-for="Article.Description"></label>
+        </div>
+        <div>
+            <textarea class="col-12" rows="3" asp-for="Article.Description"></textarea>
+        </div>
+        <span class="text-danger" asp-validation-for="Article.Description"></span>
+    </div>
+
+    <div class="mb-2 col-12 col-lg-7">
+        <div>
+            <label class="form-label" asp-for="Article.Text"></label>
+        </div>
+        <div>
+            <textarea class="col-12" rows="3" asp-for="Article.Text"></textarea>
+        </div>
+        <span class="text-danger" asp-validation-for="Article.Text"></span>
+    </div>
+
+    <div class="mb-2 col-12 col-lg-7">
+        <label class="form-label"  asp-for="Article.PublicationDate"></label>
+        <input class ="form-control" id="pub-date" asp-for="Article.PublicationDate" type="datetime" />
+        <span class="text-danger" asp-validation-for="Article.PublicationDate"></span>
+    </div>
+
+    <div class="mb-2 col-12 col-lg-7">
+        <label class="form-label"  asp-for="Article.Rate"></label>
+        <input class ="form-control" asp-for="Article.Rate" type="number" />
+        <span class="text-danger" asp-validation-for="Article.Rate"></span>
+    </div>
+
+    <div class="mb-2 col-12 col-lg-7">
+        <label class="form-label"  asp-for="Article.SourceId"></label>
+        <select class="form-control"asp-for="Article.SourceId">
+            @foreach (var c in Model.Sources)
+            {
+                <option value=@c.Key>@c.Value</option>
+            }
+        </select>
+    </div>
+    <button class="btn btn-primary">Submit</button>
+</form>

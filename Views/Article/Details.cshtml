@@ -1,0 +1,63 @@
+﻿@model ArticleWithCommentsModel
+
+<div class="card">
+	<div class="card-body">
+
+		@if (Context.User.IsInRole("Admin"))
+		{
+			<div class="mb-3">
+				<a asp-action="Edit" asp-route-id="@Model.Article.ArticleModelId" class="btn btn-primary">Edit</a>
+				<a asp-action="Delete" asp-route-id="@Model.Article.ArticleModelId" class="btn btn-primary">Delete</a>
+			</div>
+		}
+
+		<div class="card-title">
+			<h5>@Model.Article.Title</h5>
+		</div>
+
+		<div class="card-text">
+			<h6>Description</h6>
+			@* <p>@Model.Description</p> *@
+			@Html.Raw(Model.Article.Description)
+
+			<h6>Text</h6>
+			@* <p>@Model.Text</p> *@
+			@Html.Raw(Model.Article.Text)
+		</div>
+	</div>
+
+	<div class="card-footer text-body-secondary">
+		by @Model.Article.SourceName at @Model.Article.PublicationDate
+	</div>
+</div>
+
+@if (Context.User.Identity.IsAuthenticated)
+{
+	<div class="mt-3 mb-3">
+		<span>@Model.Article.LikesCount</span>
+
+		@if (Model.Article.IsLiked == true)
+		{
+			<a asp-action="Like" asp-route-articleId="@Model.Article.ArticleModelId" asp-route-username="@Context.User.Identity.Name" class="btn btn-primary">Liked</a>
+		}
+		else
+		{
+			<a asp-action="Like" asp-route-articleId="@Model.Article.ArticleModelId" asp-route-username="@Context.User.Identity.Name" class="btn btn-primary">Like</a>
+		}
+	</div>
+	<partial name="_AddCommentPreview" model="@new CommentModel(){ArticleId=@Model.Article.ArticleModelId}" />
+}
+
+@if (Model.Comments.Length != 0) @*what is the difference from Model.Comments.Any()*@
+{
+	<div class="mt-2">
+		<h5>Comments</h5>
+	</div>
+	@foreach (var comment in Model.Comments)
+	{
+		<partial name="_CommentPreview" model="@comment" />
+	}
+}
+
+
+

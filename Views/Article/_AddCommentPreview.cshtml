@@ -1,0 +1,21 @@
+﻿@model CommentModel
+
+<form asp-action="Comment" asp-controller="Article" method="post">
+	<input style="display:none" class="form-control" readonly class="form-control-plaintext" asp-for="ArticleId" />
+
+	<div class="row">
+		<label class="form-label text-body-secondary" asp-for="CommentText">Your comment</label>
+		<div class="col-10">
+			<textarea class="col-12" rows="3" asp-for="CommentText"></textarea>
+		</div>
+		<div class="col-2">
+			<button class="btn btn-primary">AddComment</button>
+		</div>
+	</div>
+</form>
+
+@section Scripts {
+	<script src="~/lib/jquery/dist/jquery.min.js"></script>
+	<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+	<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}

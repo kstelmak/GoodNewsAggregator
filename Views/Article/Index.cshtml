@@ -1,0 +1,29 @@
+﻿@model ArticleWithPaginationModel 
+
+<h1>
+    All articles
+</h1>
+
+@if (Context.User.IsInRole("Admin"))
+{
+	<div class="mb-3">
+        <a asp-controller="Article" asp-action="Create" class="btn btn-primary">Create</a>
+        <a asp-controller="Article" asp-action="Aggregate" class="btn btn-primary">Aggregate</a>
+	</div>
+}
+
+@if (Model.Articles.Length != 0) @*what is the difference from Model.Articles.Any()*@
+{
+    foreach (var article in Model.Articles)
+    {
+      <partial name="_ArticleCardPreview" model="@article" /> 
+   
+    }
+} 
+<pagination model="Model.Pagination"></pagination>
+@*     
+    <pagination model="new PaginationModel(){PageNumber = 0, PageSize = 3, TotalPages = @Model.Pagination.TotalPages}"></pagination>
+*@
+
+
+

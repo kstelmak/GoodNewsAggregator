@@ -1,0 +1,32 @@
+﻿@model UserLoginModel
+<h1>
+    Login
+</h1>
+
+@*  how to keep dictionaries for Categories & Sources in model??? *@
+<form asp-action="Login" asp-controller="User" method="post">
+
+    <div class="mb-2 col-12 col-lg-7">
+        <label class="form-label" asp-for="Email"></label>
+        <input class="form-control" asp-for="Email" />
+        <span class="text-danger" asp-validation-for="Email"></span>
+    </div>
+
+    <div class="mb-2 col-12 col-lg-7">
+        <label class="form-label" asp-for="Password"></label>
+        <input class="form-control" type="password" asp-for="Password" />
+        <span class="text-danger" asp-validation-for="Password"></span>
+    </div>
+
+    
+
+    <div>
+        <button class="btn btn-primary">Submit</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}
