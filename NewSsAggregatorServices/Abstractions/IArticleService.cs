@@ -6,7 +6,7 @@ namespace NewsAggregatorApp.Services.Abstractions
 {
     public interface IArticleService
     {
-        Task<ArticleDto?[]> GetArticlesAsync(int pageNumber, int pageSize, CancellationToken token = default);
+        Task<ArticleDto?[]> GetArticlesAsync(int? pageNumber, int? pageSize, CancellationToken token = default);
         //Task<Article?[]> GetTopAsync(int take);
         Task<ArticleDto?> GetArticleByIdAsync(Guid id);
         Task AddArticleAsync(ArticleDto articleDto);

@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NewsAggregatorApp.Entities;
 using NewsAggregatorApp.Services.Abstractions;
 using NewsAggregatorCQS.Queries.Sourses;
@@ -11,9 +12,9 @@ namespace NewsAggregatorApp.Services
     {
         //private readonly AggregatorContext _context;
         private readonly IMediator _mediator;
-        private readonly ILogger<ArticleService> _logger;
+        private readonly ILogger<SourceService> _logger;
 
-        public SourceService(/*AggregatorContext context,*/ IMediator mediator, ILogger<ArticleService> logger)
+        public SourceService(/*AggregatorContext context,*/ IMediator mediator, ILogger<SourceService> logger)
         {
             //_context = context;
             _mediator = mediator;

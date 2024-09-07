@@ -6,6 +6,7 @@ using NewsAggregatorApp.Mappers;
 using NewsAggregatorApp.Services;
 using NewsAggregatorApp.Services.Abstractions;
 using NewsAggregatorMVCModels;
+using NewsAggregatorDTOs;
 using System.Security.Claims;
 using System.ServiceModel.Syndication;
 using System.Xml;
@@ -145,7 +146,6 @@ namespace NewsAggregatorApp.Controllers
             try
             {
                 await _articleService.EditArticleAsync(ArticleMapper.ArticleModelToArticleDto(model.Article));
-                int a = 0;
                 return RedirectToAction("Index");
             }
             catch (Exception e)

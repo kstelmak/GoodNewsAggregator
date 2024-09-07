@@ -24,7 +24,9 @@ namespace NewsAggregatorCQS.Queries.Articles
         {
             var a = _context.Articles
                 .Include("Source")
-                .Select(ArticleMapper.ArticleToArticleDto).ToArray();
+				.Include("Category")
+				.Include("Likes")
+				.Select(ArticleMapper.ArticleToArticleDto).ToArray();
 
             //Include("_context.Sources").Select(ArticleMapper.ArticleToArticleDto).ToArray();
 

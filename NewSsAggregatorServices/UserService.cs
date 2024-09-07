@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NewsAggregatorApp.Entities;
 using NewsAggregatorApp.Services.Abstractions;
 using NewsAggregatorCQS.Commands.Comment;
@@ -14,6 +15,7 @@ using System.Text;
 
 namespace NewsAggregatorApp.Services
 {
+	//Is there any sense in testing something except ChangeUserRoleAsync in this service?
 	public class UserService : IUserService
 	{
 		//private readonly AggregatorContext _context;
@@ -154,14 +156,20 @@ namespace NewsAggregatorApp.Services
 		public async Task ChangeUserRoleAsync(Guid id)
 		{
 			var users = await _mediator.Send(new GetUsersQuery());
-			string newRole = "Admin";
-			if(users.Where(u => u.UserDtoId.Equals(id)).FirstOrDefault().RoleName == "Admin"
-				&& users.Where(u => u.RoleName.Equals("Admin")).Count()>1)
+			var user = users.Where(u => u.UserDtoId.Equals(id)).FirstOrDefault();
+			if (user != null)
 			{
-				newRole = "User";
+				string newRole = "User";
+				if (user.RoleName == "User")
+				{
+					newRole = "Admin";
+				}
+				await _mediator.Send(new SetRoleCommand() { UserId = id, RoleName = newRole });
 			}
+			else
+			{
 
-			await _mediator.Send(new SetRoleCommand() { UserId = id, RoleName=newRole});
+			}
 		}
 	}
 }

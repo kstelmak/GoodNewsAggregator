@@ -31,6 +31,7 @@
     <ProjectReference Include="..\NewsAggregatorDTOs\NewsAggregatorDTOs.csproj" />
     <ProjectReference Include="..\NewsAggregatorMapper\NewsAggregatorMapper.csproj" />
     <ProjectReference Include="..\NewsAggregatorMVCModels\NewsAggregatorMVCModels.csproj" />
+    <ProjectReference Include="..\NewSsAggregatorServices\NewsAggregatorServices.csproj" />
   </ItemGroup>
 
 </Project>

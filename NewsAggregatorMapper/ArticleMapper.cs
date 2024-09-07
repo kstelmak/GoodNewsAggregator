@@ -11,9 +11,9 @@ namespace NewsAggregatorApp.Mappers
         [MapProperty(nameof(Article.ArticleId), nameof(ArticleDto.ArticleDtoId))]
         [MapperIgnoreTarget(nameof(ArticleDto.LikesCount))]
         [MapProperty([nameof(Article.Source), nameof(Article.Source.SourceName)],[nameof(ArticleDto.SourceName)])]
-
-        //[MapProperty([nameof(Article.Source), nameof(Article.Source.SourceName)],[nameof(ArticleDto.SourceName)])]
-        public static partial ArticleDto? ArticleToArticleDto(Article? article);
+        [MapProperty([nameof(Article.Category), nameof(Article.Category.CategoryName)],[nameof(ArticleDto.CategoryName)])]
+		[MapProperty([nameof(Article.Likes), nameof(Article.Likes.Count)], [nameof(ArticleDto.LikesCount)])]
+		public static partial ArticleDto? ArticleToArticleDto(Article? article);
 
         [MapProperty(nameof(ArticleDto.ArticleDtoId), nameof(ArticleModel.ArticleModelId))]
         public static partial ArticleModel? ArticleDtoToArticleModel(ArticleDto? articleDto);

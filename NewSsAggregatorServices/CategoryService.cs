@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NewsAggregatorApp.Entities;
 using NewsAggregatorApp.Services.Abstractions;
 using NewsAggregatorCQS.Queries.Categories;
@@ -10,9 +11,9 @@ namespace NewsAggregatorApp.Services
     {
         private readonly AggregatorContext _context;
         private readonly IMediator _mediator;
-        private readonly ILogger<ArticleService> _logger;
+        private readonly ILogger<CategoryService> _logger;
 
-        public CategoryService(AggregatorContext context, IMediator mediator, ILogger<ArticleService> logger)
+        public CategoryService(AggregatorContext context, IMediator mediator, ILogger<CategoryService> logger)
         {
             _context = context;
             _mediator = mediator;
@@ -42,8 +43,6 @@ namespace NewsAggregatorApp.Services
         //    try
         //    {
         //        var c = _context.Categories.Select(c => c.CategoryName).ToArrayAsync();
-
-
         //        List<string> categoriesNames = new List<string>();
         //        var categories = _context.Categories;
         //        foreach (var category in categories)
@@ -56,13 +55,7 @@ namespace NewsAggregatorApp.Services
         //    {
         //        throw;
         //    }
-
         //}
 
-        //public async Task<Category[]> GetCategoriesByArticleId(Guid id)
-        //{
-        //    return await _context.ArticleCategories.Where(ac => ac.ArticleId == id).Select(ac => ac.Category).ToArrayAsync();
-
-        //}
     }
 }

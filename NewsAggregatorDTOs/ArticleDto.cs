@@ -20,5 +20,16 @@ namespace NewsAggregatorDTOs
         public Guid SourceId { get; set; }
         public string? SourceName { get; set; }
         public int? LikesCount { get; set; }
-    }
+
+		public override bool Equals(object? obj)
+		{
+			return obj is ArticleDto other &&
+				   (ArticleDtoId, CategoryId, CategoryName, OriginalUrl, Title, Description, Text,
+					PublicationDate, Rate, SourceId, SourceName, LikesCount)
+				   .Equals((other.ArticleDtoId, other.CategoryId, other.CategoryName, other.OriginalUrl,
+							other.Title, other.Description, other.Text,
+							other.PublicationDate, other.Rate, other.SourceId,
+							other.SourceName, other.LikesCount));
+		}
+	}
 }
