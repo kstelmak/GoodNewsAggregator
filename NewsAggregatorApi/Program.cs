@@ -6,6 +6,13 @@ using Serilog;
 using Microsoft.EntityFrameworkCore;
 using NewsAggregatorApp.Entities;
 using NewsAggregatorCQS.Commands.Articles;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using NewsAggregatorServices;
+using NewsAggregatorServices.Abstractions;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 namespace NewsAggregatorApi
 {
@@ -20,12 +27,38 @@ namespace NewsAggregatorApi
 			builder.Services.AddControllers();
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
-			builder.Services.AddSwaggerGen();
+			builder.Services.AddSwaggerGen(options =>
+			{
+				options.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1.0" });
+				options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory,
+					$"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
+				//options.AddSecurityDefinition("Bearer",
+				//    new OpenApiSecurityScheme
+				//    {
+				//        Description =
+				//            "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+				//        Name = "Authorization",
+				//        In = ParameterLocation.Header,
+				//        Type = SecuritySchemeType.ApiKey,
+				//        Scheme = "Bearer"
+				//    });
+				//options.AddSecurityRequirement(new OpenApiSecurityRequirement
+				//{
+				//    {
+				//        new OpenApiSecurityScheme
+				//        {
+				//            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+				//        },
+				//        new string[] { }
+				//    }
+				//});
+			});
 
 			builder.Services.AddScoped<IArticleService, ArticleService>();
 			builder.Services.AddScoped<ICategoryService, CategoryService>();
 			builder.Services.AddScoped<ISourceService, SourceService>();
 			builder.Services.AddScoped<IUserService, UserService>();
+			builder.Services.AddScoped<ITokenService, TokenService>();
 
 			Log.Logger = new LoggerConfiguration()
 				.MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -40,6 +73,28 @@ namespace NewsAggregatorApi
 
 			builder.Services.AddDbContext<AggregatorContext>(
 				options => options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+
+			var jwtIss = builder.Configuration.GetSection("Jwt:Iss").Get<string>();
+			var jwtAud = builder.Configuration.GetSection("Jwt:Aud").Get<string>();
+			var jwtKey = builder.Configuration.GetSection("Jwt:Secret").Get<string>();
+
+			builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+				.AddJwtBearer(opt =>
+				{
+					//opt.
+					opt.TokenValidationParameters = new TokenValidationParameters()
+					{
+						ValidateIssuer = true,
+						ValidateAudience = true,
+						ValidateLifetime = true,
+						ValidateIssuerSigningKey = true,
+						ValidIssuer = jwtIss,
+						ValidAudience = jwtAud,
+						IssuerSigningKey = new SymmetricSecurityKey(
+							Encoding.UTF8.GetBytes(jwtKey))
+					};
+				});
+			builder.Services.AddAuthorization();
 
 			builder.Services.AddMediatR(cfg => {
 				cfg.RegisterServicesFromAssembly(typeof(InsertUniqueArticlesFromRssDataCommand).Assembly);

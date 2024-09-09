@@ -46,7 +46,7 @@ namespace NewsAggregatorApp.Services
 				SecurityStamp = secStamp,
 				// RoleId = userRole
 			};
-			await _mediator.Send(new AddUserCommand() { registerUserDto = user });
+			await _mediator.Send(new AddUserCommand() { registerUserDto = user }, token);
 
 
 			//todo to improve: email confirm, sms, etc
@@ -69,9 +69,9 @@ namespace NewsAggregatorApp.Services
 			}
 		}
 
-		public async Task<bool> CheckPasswordAsync(string email, string password)
+		public async Task<bool> CheckPasswordAsync(string email, string password, CancellationToken token)
 		{
-			var stamp = await _mediator.Send(new GetUserSecurityStampQuery() { Email = email });
+			var stamp = await _mediator.Send(new GetUserSecurityStampQuery() { Email = email }, token);
 
 			return await _mediator.Send(new CheckPasswordQuery()
 			{
@@ -83,7 +83,7 @@ namespace NewsAggregatorApp.Services
 		public async Task<bool> CheckIsEmailRegisteredAsync(string email, CancellationToken token)
 		{
 			//var u = (await _mediator.Send(new GetUsersQuery())).Where(u=>u.Email.Equals(email)).FirstOrDefault();
-			if ((await _mediator.Send(new GetUsersQuery())).Where(u => u.Email.Equals(email)).FirstOrDefault() != null)
+			if ((await _mediator.Send(new GetUsersQuery(), token)).Where(u => u.Email.Equals(email)).FirstOrDefault() != null)
 			{
 				return true;
 			}
@@ -103,28 +103,34 @@ namespace NewsAggregatorApp.Services
 		{
 			return await _mediator.Send(new GetRoleNameByIdQuery()
 			{
-				RoleId = (await _mediator.Send(new GetUsersQuery()))
+				RoleId = (await _mediator.Send(new GetUsersQuery(), token))
 				.Where(u => u.Email.Equals(email)).FirstOrDefault().RoleId
 			});
 		}
 
 		public async Task<string> GetUserNameByEmailAsync(string email, CancellationToken token)
 		{
-			return (await _mediator.Send(new GetUsersQuery()))
+			return (await _mediator.Send(new GetUsersQuery(), token))
 				.Where(u => u.Email.Equals(email)).FirstOrDefault().Name;
 		}
 
-		public async Task<LikeDto[]> GetUserLikesAsync(string userName)
+		public async Task<Guid> GetUserIdByEmailAsync(string email, CancellationToken token = default)
 		{
-			return await _mediator.Send(new GetUserLikesQuery() { UserName = userName });
+			return (await _mediator.Send(new GetUsersQuery(), token))
+				.Where(u => u.Email.Equals(email)).FirstOrDefault().UserDtoId;
 		}
 
-		public async Task AddCommentAsync(CommentModel comment, string name)
+		public async Task<LikeDto[]> GetUserLikesAsync(string userName, CancellationToken token)
+		{
+			return await _mediator.Send(new GetUserLikesQuery() { UserName = userName }, token);
+		}
+
+		public async Task AddCommentAsync(CommentModel comment, string name, CancellationToken token = default)
 		{
 			comment.CommentModelId = Guid.NewGuid();
-			comment.UserId = (await _mediator.Send(new GetUsersQuery()))
+			comment.UserId = (await _mediator.Send(new GetUsersQuery(), token))
 					.Where(u => u.Name.Equals(name)).FirstOrDefault().UserDtoId;
-			await _mediator.Send(new AddCommentCommand() { Comment = comment });
+			await _mediator.Send(new AddCommentCommand() { Comment = comment }, token);
 		}
 
 
@@ -153,9 +159,9 @@ namespace NewsAggregatorApp.Services
 			return await _mediator.Send(new GetUsersQuery());
 		}
 
-		public async Task ChangeUserRoleAsync(Guid id)
+		public async Task ChangeUserRoleAsync(Guid id, CancellationToken token)
 		{
-			var users = await _mediator.Send(new GetUsersQuery());
+			var users = await _mediator.Send(new GetUsersQuery(), token);
 			var user = users.Where(u => u.UserDtoId.Equals(id)).FirstOrDefault();
 			if (user != null)
 			{
@@ -164,7 +170,7 @@ namespace NewsAggregatorApp.Services
 				{
 					newRole = "Admin";
 				}
-				await _mediator.Send(new SetRoleCommand() { UserId = id, RoleName = newRole });
+				await _mediator.Send(new SetRoleCommand() { UserId = id, RoleName = newRole }, token);
 			}
 			else
 			{

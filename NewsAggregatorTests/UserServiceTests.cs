@@ -22,6 +22,7 @@ namespace NewsAggregatorTests
 	{
 		private IMediator _mediatorMock;
 		private ILogger<UserService> _loggerMock;
+		private CancellationToken cToken = new CancellationToken();
 
 		private string resultRole = "";
 
@@ -48,7 +49,7 @@ namespace NewsAggregatorTests
 					Email = ""
 				}
 			];
-			var cToken = new CancellationToken();
+			
 
 			_mediatorMock = Substitute.For<IMediator>();
 			_loggerMock = Substitute.For<ILogger<UserService>>();
@@ -83,7 +84,7 @@ namespace NewsAggregatorTests
 			//Act
 			var userService = GetUserServiceWithMocks(userId, newRole);
 			//Assert
-			await userService.ChangeUserRoleAsync(userId);
+			await userService.ChangeUserRoleAsync(userId, cToken);
 			//_mediatorMock.Received().SetRoleCommand();
 			Assert.Equal(newRole, resultRole);
 		}
@@ -100,7 +101,7 @@ namespace NewsAggregatorTests
 			//Act
 			var userService = GetUserServiceWithMocks(userId, newRole);
 			//Assert
-			await userService.ChangeUserRoleAsync(userId);
+			await userService.ChangeUserRoleAsync(userId, cToken);
 			Assert.Equal(newRole, resultRole);
 		}
 	}

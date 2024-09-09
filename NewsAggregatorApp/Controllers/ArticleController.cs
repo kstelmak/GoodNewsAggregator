@@ -175,7 +175,6 @@ namespace NewsAggregatorApp.Controllers
         [Authorize]
         public async Task<IActionResult> Like(Guid articleId, string username)
         {
-
             await _articleService.LikeAsync(articleId,  username);
             return RedirectToAction("Details", new { id = articleId }); 
         }
@@ -186,11 +185,7 @@ namespace NewsAggregatorApp.Controllers
         {
             try
             {
-                //var a = _userService.AddComment(model, HttpContext.User.Identity.Name);
                 await _userService.AddCommentAsync(model, HttpContext.User.Identity.Name);
-
-
-                //return RedirectToAction("Index");
                 return RedirectToAction("Details", new { id = model.ArticleId });
             }
             catch (Exception ex)
@@ -198,8 +193,6 @@ namespace NewsAggregatorApp.Controllers
                 _logger.LogError(ex.Message);
                 return StatusCode(500, new { Message = ex.Message });
             }
-
-
         }
 
         //show top 3 articles with the highest rating for week
@@ -218,7 +211,7 @@ namespace NewsAggregatorApp.Controllers
         {
             try
             {
-                var model = await _articleService.GetDetailsAsync(id);
+				var model = await _articleService.GetDetailsAsync(id);
                 var like = (await _userService.GetUserLikesAsync(HttpContext.User.Identity.Name)).Where(l=>l.ArticleId==id).FirstOrDefault();
                 if(like!=null)
                 {
