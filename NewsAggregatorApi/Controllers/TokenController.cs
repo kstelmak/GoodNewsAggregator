@@ -18,25 +18,22 @@ namespace NewsAggregatorApi.Controllers
 		}
 
 		//todo add model for refreshToken
-		//[HttpPost("/refresh/")]
-		//public async Task<IActionResult> Refresh([FromBody] Guid refreshToken,
-		//	CancellationToken cancellationToken = default)
-		//{
-		//	if (await _tokenService.RefreshTokenCorrect(refreshToken, cancellationToken))
-		//	{
-		//		var user = await _userService.GetUserDataByRefreshToken(refreshToken, cancellationToken);
-		//		if (user != null)
-		//		{
-		//			var data = await GenerateTokenPair(user.Id, user.RoleName);
-
-		//			await _tokenService.RemoveToken(refreshToken); //todo need to be implemented
-
-		//			return Ok(new { AccessToken = data.Item1, refreshToken = data.Item2 });
-
-		//		}
-		//	}
-		//	return NotFound();
-		//}
+		[HttpPost("/refresh/")]
+		public async Task<IActionResult> Refresh([FromBody] Guid refreshTokenId,
+			CancellationToken cancellationToken = default)
+		{
+			if (await _tokenService.RefreshTokenCorrect(refreshTokenId, cancellationToken))
+			{
+				var user = await _userService.GetUserDataByRefreshToken(refreshTokenId, cancellationToken);
+				if (user != null)
+				{
+					var data = await GenerateTokenPair(user.Id, user.RoleName);
+					await _tokenService.RemoveToken(refreshTokenId);
+					return Ok(new { AccessToken = data.Item1, refreshToken = data.Item2 });
+				}
+			}
+			return NotFound();
+		}
 
 		[HttpPost("/login")]
 		public async Task<IActionResult> Login([FromBody] UserLoginModel model,
@@ -57,24 +54,22 @@ namespace NewsAggregatorApi.Controllers
 			}
 
 			var data = await GenerateTokenPair(userId, userRole);
-
 			return Ok(new { AccessToken = data.Item1, RefreshToken = data.Item2 });
-
 		}
 
 		[HttpPatch("/revoke/{id}")]
 		public async Task<IActionResult> Revoke(Guid id,
 			CancellationToken cancellationToken = default)
 		{
-			//set IsRevoked true for refreshToken 
+			await _tokenService.RevokeTokenAsync(id);
 			return NotFound();
 		}
 
 		private async Task<(string, string)> GenerateTokenPair(Guid userId, string userRole)
 		{
-			var jwt = await _tokenService.GenerateJwtTokenString(userId, userRole);
+			var jwt = await _tokenService.GenerateJwtTokenStringAsync(userId, userRole);
 			var deviceInfo = "localhost";
-			var rt = await _tokenService.GenerateRefreshToken(userId, deviceInfo);
+			var rt = await _tokenService.GenerateRefreshTokenAsync(userId, deviceInfo);
 			return (jwt, rt);
 		}
 	}

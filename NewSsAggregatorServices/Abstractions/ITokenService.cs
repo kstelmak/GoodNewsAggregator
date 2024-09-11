@@ -8,9 +8,9 @@ namespace NewsAggregatorServices.Abstractions
 {
 	public interface ITokenService
 	{
-		public Task<string> GenerateJwtTokenString(Guid userId, string role, CancellationToken token = default);
-		public Task<string> GenerateRefreshToken(Guid userId, string deviceInfo);
-		public Task RevokeToken(Guid refreshTokenId);
+		public Task<string> GenerateJwtTokenStringAsync(Guid userId, string role, CancellationToken token = default);
+		public Task<string> GenerateRefreshTokenAsync(Guid userId, string deviceInfo);
+		public Task RevokeTokenAsync(Guid refreshTokenId);
 		Task<bool> RefreshTokenCorrect(Guid tokenId, CancellationToken cancellationToken = default);
 		Task RemoveToken(Guid id);
 	}

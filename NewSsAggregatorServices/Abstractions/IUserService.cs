@@ -17,6 +17,7 @@ namespace NewsAggregatorApp.Services.Abstractions
         Task AddCommentAsync(CommentModel model, string name, CancellationToken token = default);
         Task<UserDto[]> GetAllUsers();
         Task ChangeUserRoleAsync(Guid id, CancellationToken token = default);
+        Task<UserTokenDto> GetUserDataByRefreshToken(Guid id, CancellationToken cancellationToken);
 		//Task<string> GetUserRoleByNameAsync(string modelName, CancellationToken token);
 		//Task<Guid?> GetUserIdByEmailAsync(string modelEmail, CancellationToken cancellationToken);
 

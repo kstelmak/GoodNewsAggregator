@@ -172,10 +172,11 @@ namespace NewsAggregatorApp.Services
 				}
 				await _mediator.Send(new SetRoleCommand() { UserId = id, RoleName = newRole }, token);
 			}
-			else
-			{
+		}
 
-			}
+		public async Task<UserTokenDto> GetUserDataByRefreshToken(Guid id, CancellationToken cancellationToken)
+		{
+			return await _mediator.Send(new GetUserDataByRefreshTokenQuery() { ToklenId = id }, cancellationToken);
 		}
 	}
 }

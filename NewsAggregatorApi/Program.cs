@@ -13,6 +13,7 @@ using NewsAggregatorServices;
 using NewsAggregatorServices.Abstractions;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using Hangfire;
 
 namespace NewsAggregatorApi
 {
@@ -99,6 +100,19 @@ namespace NewsAggregatorApi
 			builder.Services.AddMediatR(cfg => {
 				cfg.RegisterServicesFromAssembly(typeof(InsertUniqueArticlesFromRssDataCommand).Assembly);
 			});
+
+			builder.Services.AddMemoryCache();
+			//(options =>
+			//{
+			//    options.
+			//    options.SizeLimit = 
+			//});
+			builder.Services.AddHangfire(conf => conf
+				.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+				.UseSimpleAssemblyNameTypeSerializer()
+				.UseRecommendedSerializerSettings()
+				.UseSqlServerStorage(builder.Configuration.GetConnectionString("Default")));
+			builder.Services.AddHangfireServer();
 
 			var app = builder.Build();
 
