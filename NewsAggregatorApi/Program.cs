@@ -64,6 +64,7 @@ namespace NewsAggregatorApi
 			Log.Logger = new LoggerConfiguration()
 				.MinimumLevel.Override("Microsoft", LogEventLevel.Information)
 				.Enrich.FromLogContext()
+				.WriteTo.Console()
 				.WriteTo.File("log.log")
 				.CreateBootstrapLogger();
 			builder.Services.AddSerilog((services, lc) => lc
@@ -82,7 +83,6 @@ namespace NewsAggregatorApi
 			builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 				.AddJwtBearer(opt =>
 				{
-					//opt.
 					opt.TokenValidationParameters = new TokenValidationParameters()
 					{
 						ValidateIssuer = true,
@@ -107,6 +107,7 @@ namespace NewsAggregatorApi
 			//    options.
 			//    options.SizeLimit = 
 			//});
+
 			builder.Services.AddHangfire(conf => conf
 				.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
 				.UseSimpleAssemblyNameTypeSerializer()
@@ -126,7 +127,8 @@ namespace NewsAggregatorApi
 			app.UseHttpsRedirection();
 
 			app.UseAuthorization();
-
+			app.UseAuthorization();
+			app.UseHangfireDashboard();
 
 			app.MapControllers();
 

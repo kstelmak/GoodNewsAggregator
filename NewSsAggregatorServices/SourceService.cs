@@ -21,11 +21,11 @@ namespace NewsAggregatorApp.Services
             _logger = logger;
         }
 
-        public async Task<Dictionary<Guid, string>?> GetSourcesIdsAndNamesAsync()
+        public async Task<Dictionary<Guid, string>?> GetSourcesIdsAndNamesAsync(CancellationToken token)
         {
             try
             {
-                var sources = await _mediator.Send(new GetSourcesQuery());
+                var sources = await _mediator.Send(new GetSourcesQuery(), token);
                 Dictionary<Guid, string> sourcesIdsAndNames = new Dictionary<Guid, string>();
                 foreach (var source in sources)
                 {

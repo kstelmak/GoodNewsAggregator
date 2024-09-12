@@ -2,6 +2,7 @@
 
 <form asp-action="Comment" asp-controller="Article" method="post">
 	<input style="display:none" class="form-control" readonly class="form-control-plaintext" asp-for="ArticleId" />
+	<input style="display:none" class="form-control" readonly class="form-control-plaintext" asp-for="UserName" />
 
 	<div class="row">
 		<label class="form-label text-body-secondary" asp-for="CommentText">Your comment</label>

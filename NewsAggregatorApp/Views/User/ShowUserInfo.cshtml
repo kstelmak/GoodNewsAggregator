@@ -1,0 +1,30 @@
+﻿@model UserModel
+
+<h1>
+    User info
+</h1>
+
+<div>
+    <a asp-action="ChangePassword" asp-route-email="@Model.Email" class="btn btn-primary">Change password</a>
+</div>
+
+<input style="display:none" class="form-control" readonly class="form-control-plaintext" asp-for="UserModelId" />
+<input style="display:none" class="form-control" readonly class="form-control-plaintext" asp-for="RoleId" />
+<input style="display:none" class="form-control" readonly class="form-control-plaintext" asp-for="RoleName" />
+
+<div class="mb-2 col-12 col-lg-7">
+    <label class="form-label">Name</label>
+    <input class="form-control" readonly class="form-control-plaintext" asp-for="@Model.Name">
+</div>
+
+<div class="mb-2 col-12 col-lg-7">
+    <label class="form-label">Email</label>
+    <input class="form-control" readonly class="form-control-plaintext" asp-for="@Model.Email">
+</div>
+<div class="mb-2 col-12 col-lg-7">
+    <label class="form-label">Minimum rating of news shown</label>
+    <input class="form-control" readonly class="form-control-plaintext" asp-for="@Model.MinRate">
+</div>
+<div class="mb-2 col-12 col-lg-7">
+    <a asp-action="EditUserInfo" asp-route-username="@Context.User.Identity.Name" class="btn btn-primary">Edit</a>
+</div>

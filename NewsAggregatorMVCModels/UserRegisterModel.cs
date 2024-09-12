@@ -5,12 +5,13 @@ using System.ComponentModel.DataAnnotations;
 //using Microsoft.AspNetCore.Mvc;
 
 
-
 namespace NewsAggregatorMVCModels
 {
     public class UserRegisterModel
     {
         [Required]
+        [Remote("CheckName", "User", HttpMethod = "POST")]
+
         public string Name { get; set; }
 
         [Required]

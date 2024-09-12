@@ -8,11 +8,18 @@ using NewsAggregatorApp.Services;
 using NewsAggregatorMVCModels;
 using Microsoft.AspNetCore.Authorization;
 using NewsAggregatorMapper;
+using NewsAggregatorApp.Entities;
+using System.Runtime.Intrinsics.X86;
+using Newtonsoft.Json.Linq;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using NewsAggregatorCQS.Queries.User;
 
 namespace NewsAggregatorApp.Controllers
 {
-    public class UserController:Controller
+    public class UserController : Controller
     {
+        //user should be able to change the password with confirmation via email
+
         private readonly IUserService _userService;
         private readonly ILogger<UserController> _logger;
 
@@ -32,7 +39,7 @@ namespace NewsAggregatorApp.Controllers
         public async Task<IActionResult> Login(UserLoginModel loginModel, CancellationToken token = default)
         {
             if (await _userService.CheckIsEmailRegisteredAsync(loginModel.Email, token) &&
-                await _userService.CheckPasswordAsync(loginModel.Email, loginModel.Password))
+                await _userService.CheckPasswordAsync(loginModel.Email, loginModel.Password, token))
             {
                 var userRole = await _userService.GetUserRoleNameByEmailAsync(loginModel.Email, token);
                 var userName = await _userService.GetUserNameByEmailAsync(loginModel.Email, token);
@@ -57,17 +64,16 @@ namespace NewsAggregatorApp.Controllers
             return View(loginModel);
         }
 
-		[HttpGet]
-		public async Task<IActionResult> Logout()
-		{
+        [HttpGet]
+        public async Task<IActionResult> Logout()
+        {
             await HttpContext.SignOutAsync();
-			return RedirectToAction("Index", "Home");
-		}
+            return RedirectToAction("Index", "Home");
+        }
 
-		[HttpGet]
+        [HttpGet]
         public IActionResult Register()
         {
-
             return View();
         }
 
@@ -89,7 +95,7 @@ namespace NewsAggregatorApp.Controllers
             var userRole = await _userService.GetUserRoleNameByEmailAsync(registerModel.Email, token);
 
             var claims = new List<Claim>()
-                {
+            {
                     new Claim(ClaimTypes.Email, registerModel.Email),
                     new Claim(ClaimTypes.Name, registerModel.Name),
                     new Claim(ClaimTypes.Role, userRole),
@@ -109,21 +115,87 @@ namespace NewsAggregatorApp.Controllers
             return !(await _userService.CheckIsEmailRegisteredAsync(Email, token));
         }
 
+        [HttpPost]
+        public async Task<bool> CheckName(string Name, CancellationToken token = default)
+        {
+            return !(await _userService.CheckIsNameRegisteredAsync(Name, token));
+        }
+
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ShowUsers()
+        public async Task<IActionResult> ShowUsers(CancellationToken token = default)
         {
-            var model = (await _userService.GetAllUsers()).Select(UserMapper.UserDtoToUserModel).OrderBy(u=>u.RoleName)
+            var model = (await _userService.GetAllUsers(token)).Select(UserMapper.UserDtoToUserModel).OrderBy(u => u.RoleName)
                 .ToArray();
             return View(model);
         }
 
-		[HttpGet]
-		[Authorize(Roles = "Admin")]
-		public async Task<IActionResult> ChangeRole(Guid id)
-		{
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ChangeRole(Guid id)
+        {
             await _userService.ChangeUserRoleAsync(id);
             return RedirectToAction("ShowUsers");
-		}
-	}
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ShowUserInfo(string username)
+        {
+            var model = UserMapper.UserDtoToUserModel(await _userService.GetUserByNameAsync(username, new CancellationToken()));
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditUserInfo(string username)
+        {
+            var model = UserMapper.UserDtoToUserModel(await _userService.GetUserByNameAsync(username, new CancellationToken()));
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditUserInfo(UserModel model, CancellationToken token = default)
+        {
+            if (await _userService.CheckIsNameRegisteredAsync(model.Name, token)
+                && !(await _userService.GetUserNameByEmailAsync(model.Email, token)).Equals(model.Name)
+                )
+            {
+                ModelState.AddModelError("Name", "name is alredy used");
+                return View(model);
+            }
+            else
+            {
+                await _userService.EditUserAsync(UserMapper.UserModelToUserDto(model), token);
+            }
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ChangePassword(string email)
+        {
+            var model = new UserChangePasswordModel() { Email = email };
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(UserChangePasswordModel model, CancellationToken token = default)
+        {
+            //if(ModelState.IsValid)
+            //{
+            if (await _userService.CheckPasswordAsync(model.Email, model.OldPassword, token))
+            {
+                string passwordHash = await _userService
+                    .GetPasswordHash(model.OldPassword,
+                    (await _userService.GetSecurityStampAsync(model.Email, token)));
+                await _userService.ChangePasswordAsync(model.Email, passwordHash, token);
+                return RedirectToAction("ShowUserInfo");
+            }
+            else
+            {
+                ModelState.AddModelError("OldPassword", "old password is incorrect");
+                return View(model);
+            }
+            //}
+            //return View();
+        }
+    }
 }

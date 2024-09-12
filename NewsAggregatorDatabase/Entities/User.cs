@@ -8,9 +8,11 @@
         public string Name { get; set; }
         public string Email { get; set; }
         public string PasswordHash { get; set; }
-        public string SecurityStamp { get; set; } 
+        public string SecurityStamp { get; set; }
+		public int MinRate { get; set; }
 
-        public ICollection<Comment> Comments { get; set; }
+
+		public ICollection<Comment> Comments { get; set; }
         public ICollection<Like> Likes { get; set; }
 
     }

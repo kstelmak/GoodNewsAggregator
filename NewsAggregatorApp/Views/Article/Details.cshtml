@@ -45,7 +45,7 @@
 			<a asp-action="Like" asp-route-articleId="@Model.Article.ArticleModelId" asp-route-username="@Context.User.Identity.Name" class="btn btn-primary">Like</a>
 		}
 	</div>
-	<partial name="_AddCommentPreview" model="@new CommentModel(){ArticleId=@Model.Article.ArticleModelId}" />
+	<partial name="_AddCommentPreview" model="@new CommentModel(){ArticleId=@Model.Article.ArticleModelId, UserName=Context.User.Identity.Name}" />
 }
 
 @if (Model.Comments.Length != 0) @*what is the difference from Model.Comments.Any()*@

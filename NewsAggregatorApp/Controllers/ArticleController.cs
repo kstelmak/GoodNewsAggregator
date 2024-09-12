@@ -32,15 +32,19 @@ namespace NewsAggregatorApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10)
+        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, CancellationToken token = default)
         {
             try
             {
-                var articles = (await _articleService.GetArticlesAsync(pageNumber, pageSize))                    
-                    /*.Select(ArticleMapper.ArticleToArticleDto)
-                    .ToArray()*/;
+                int minRate = -5;
+                if (HttpContext.User.Identity.IsAuthenticated)
+                {
+                    minRate = (await _userService.GetUserByNameAsync(HttpContext.User.Identity.Name, token)).MinRate;
+                }
+                var articles = (await _articleService.GetArticlesAsync(pageNumber, pageSize, minRate, token)).ToArray();
 
-                var articlesCount = await _articleService.GetArticlesCountAsync();
+                // var articlesCount = await _articleService.GetArticlesCountAsync();
+                var articlesCount = articles.Count();
 
                 var pagination = new PaginationModel()
                 {
@@ -69,15 +73,15 @@ namespace NewsAggregatorApp.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(CancellationToken token = default)
         {
             try
             {
-               var model = new ArticleWithCategoriesAndSourcesModel()
+                var model = new ArticleWithCategoriesAndSourcesModel()
                 {
                     Article = new ArticleModel(),
-                    Categories = await _categoryService.GetCategoriesIdsAndNamesAsync(),
-                    Sources = await _sourceService.GetSourcesIdsAndNamesAsync()
+                    Categories = await _categoryService.GetCategoriesIdsAndNamesAsync(token),
+                    Sources = await _sourceService.GetSourcesIdsAndNamesAsync(token)
                 };
                 return View(model);
             }
@@ -88,19 +92,18 @@ namespace NewsAggregatorApp.Controllers
             }
         }
 
-
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create(ArticleWithCategoriesAndSourcesModel model)
+        public async Task<IActionResult> Create(ArticleWithCategoriesAndSourcesModel model, CancellationToken token = default)
         {
             model.Article.ArticleModelId = Guid.NewGuid();
-            if (ModelState.IsValid) 
+            if (ModelState.IsValid)
             {
                 try
-                {                   
+                {
                     var modelDto = ArticleMapper.ArticleModelToArticleDto(model.Article);
-                    await _articleService.AddArticleAsync(modelDto);
-                    
+                    await _articleService.AddArticleAsync(modelDto, token);
+
                     return RedirectToAction("Index");
                 }
                 catch (Exception e)
@@ -111,24 +114,24 @@ namespace NewsAggregatorApp.Controllers
             }
             else
             {
-                model.Categories = await _categoryService.GetCategoriesIdsAndNamesAsync(); //when the model returns from view Categories and Sources are null. How can this be fixed?
-                model.Sources = await _sourceService.GetSourcesIdsAndNamesAsync();
+                model.Categories = await _categoryService.GetCategoriesIdsAndNamesAsync(token); //when the model returns from view Categories and Sources are null. How can this be fixed?
+                model.Sources = await _sourceService.GetSourcesIdsAndNamesAsync(token);
                 return View(model);
-            }           
+            }
         }
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(Guid id)
+        public async Task<IActionResult> Edit(Guid id, CancellationToken token = default)
         {
             try
             {
                 var model = new ArticleWithCategoriesAndSourcesModel()
                 {
                     Article = ArticleMapper.ArticleDtoToArticleModel
-                                (await _articleService.GetArticleByIdAsync(id)),
-                    Categories = await _categoryService.GetCategoriesIdsAndNamesAsync(),
-                    Sources = await _sourceService.GetSourcesIdsAndNamesAsync()
+                                (await _articleService.GetArticleByIdAsync(id, token)),
+                    Categories = await _categoryService.GetCategoriesIdsAndNamesAsync(token),
+                    Sources = await _sourceService.GetSourcesIdsAndNamesAsync(token)
                 };
                 return View(model);
             }
@@ -141,11 +144,11 @@ namespace NewsAggregatorApp.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(ArticleWithCategoriesAndSourcesModel model)
+        public async Task<IActionResult> Edit(ArticleWithCategoriesAndSourcesModel model, CancellationToken token = default)
         {
             try
             {
-                await _articleService.EditArticleAsync(ArticleMapper.ArticleModelToArticleDto(model.Article));
+                await _articleService.EditArticleAsync(ArticleMapper.ArticleModelToArticleDto(model.Article), token);
                 return RedirectToAction("Index");
             }
             catch (Exception e)
@@ -157,11 +160,11 @@ namespace NewsAggregatorApp.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id, CancellationToken token = default)
         {
             try
             {
-                await _articleService.DeleteArticleAsync(id);
+                await _articleService.DeleteArticleAsync(id, token);
                 return RedirectToAction("Index");
             }
             catch (Exception e)
@@ -173,19 +176,27 @@ namespace NewsAggregatorApp.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> Like(Guid articleId, string username)
+        public async Task<IActionResult> Like(Guid articleId, string username, CancellationToken token = default)
         {
-            await _articleService.LikeAsync(articleId,  username);
-            return RedirectToAction("Details", new { id = articleId }); 
+            try
+            {
+                await _userService.LikeAsync(articleId, username, token);
+                return RedirectToAction("Details", new { id = articleId });
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                return StatusCode(500, new { Message = e.Message });
+            }
         }
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Comment(CommentModel model)
+        public async Task<IActionResult> Comment(CommentModel model, CancellationToken token = default)
         {
             try
             {
-                await _userService.AddCommentAsync(model, HttpContext.User.Identity.Name);
+                await _userService.AddCommentAsync(model, token);
                 return RedirectToAction("Details", new { id = model.ArticleId });
             }
             catch (Exception ex)
@@ -196,24 +207,25 @@ namespace NewsAggregatorApp.Controllers
         }
 
         //show top 3 articles with the highest rating for week
-        [HttpGet]
-        public async Task<IActionResult> TopArticles()
-        {
-            //var articles = (await _articleService.GetTopAsync(3))
-            //    .Select(ConvertArticleToArticleModel)
-            //    .ToArray();
+        //[HttpGet]
+        //public async Task<IActionResult> TopArticles()
+        //{
+        //    //var articles = (await _articleService.GetTopAsync(3))
+        //    //    .Select(ConvertArticleToArticleModel)
+        //    //    .ToArray();
 
-            return View(/*articles*/);
-        }
+        //    return View(/*articles*/);
+        //}
 
         [HttpGet]
-        public async Task<IActionResult> Details(Guid id)
+        public async Task<IActionResult> Details(Guid id, CancellationToken token = default)
         {
             try
             {
-				var model = await _articleService.GetDetailsAsync(id);
-                var like = (await _userService.GetUserLikesAsync(HttpContext.User.Identity.Name)).Where(l=>l.ArticleId==id).FirstOrDefault();
-                if(like!=null)
+                var model = await _articleService.GetDetailsAsync(id, token);
+                var like = (await _userService.GetUserLikesAsync(HttpContext.User.Identity.Name, token))
+                    .Where(l => l.ArticleId == id).FirstOrDefault();
+                if (like != null)
                 {
                     model.Article.IsLiked = true;
                 }
@@ -228,11 +240,10 @@ namespace NewsAggregatorApp.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Aggregate()
+        public async Task<IActionResult> Aggregate(CancellationToken token = default)
         {
             try
             {
-                CancellationToken token = default;
                 await _articleService.AggregateAsync(token);
                 return RedirectToAction("Index");
             }
@@ -242,6 +253,5 @@ namespace NewsAggregatorApp.Controllers
                 return StatusCode(500, new { Message = e.Message });
             }
         }
-          
     }
 }

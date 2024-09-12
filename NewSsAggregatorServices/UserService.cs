@@ -1,10 +1,8 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using NewsAggregatorApp.Entities;
 using NewsAggregatorApp.Services.Abstractions;
 using NewsAggregatorCQS.Commands.Comment;
+using NewsAggregatorCQS.Commands.Like;
 using NewsAggregatorCQS.Commands.User;
 using NewsAggregatorCQS.Queries.Roles;
 using NewsAggregatorCQS.Queries.User;
@@ -15,8 +13,8 @@ using System.Text;
 
 namespace NewsAggregatorApp.Services
 {
-	//Is there any sense in testing something except ChangeUserRoleAsync in this service?
-	public class UserService : IUserService
+    //Is there any sense in testing something except ChangeUserRoleAsync in this service?
+    public class UserService : IUserService
 	{
 		//private readonly AggregatorContext _context;
 		private readonly IMediator _mediator;
@@ -31,10 +29,6 @@ namespace NewsAggregatorApp.Services
 
 		public async Task RegisterUserAsync(string name, string email, string password, CancellationToken token)
 		{
-			//var userRole = await _mediator.Send(new GetDefaultUserRoleQuery());
-
-			//if (userRole !=null)
-			//{
 			var secStamp = Guid.NewGuid().ToString("N");
 			var passwordHash = await GetPasswordHash(password, secStamp);
 			var user = new RegisterUserDto
@@ -48,16 +42,10 @@ namespace NewsAggregatorApp.Services
 			};
 			await _mediator.Send(new AddUserCommand() { registerUserDto = user }, token);
 
-
 			//todo to improve: email confirm, sms, etc
-			//}
-			//else
-			//{
-			//    _logger.LogWarning("Default user role does not exist");
-			//}
 		}
 
-		private async Task<string> GetPasswordHash(string password, string secStamp)
+        public async Task<string> GetPasswordHash(string password, string secStamp)
 		{
 			using (var md5 = MD5.Create())
 			{
@@ -69,43 +57,58 @@ namespace NewsAggregatorApp.Services
 			}
 		}
 
-		public async Task<bool> CheckPasswordAsync(string email, string password, CancellationToken token)
+        public async Task<string> GetSecurityStampAsync(string email, CancellationToken token)
+        {
+            return await _mediator.Send(new GetUserSecurityStampQuery() { Email = email }, token);
+        }
+
+        public async Task<bool> CheckPasswordAsync(string email, string password, CancellationToken token)
 		{
-			var stamp = await _mediator.Send(new GetUserSecurityStampQuery() { Email = email }, token);
+			var stamp = await GetSecurityStampAsync(email, token);
 
 			return await _mediator.Send(new CheckPasswordQuery()
 			{
 				Email = email,
 				PasswordHash = await GetPasswordHash(password, stamp)
-			});
+			}, token);
 		}
 
 		public async Task<bool> CheckIsEmailRegisteredAsync(string email, CancellationToken token)
 		{
-			//var u = (await _mediator.Send(new GetUsersQuery())).Where(u=>u.Email.Equals(email)).FirstOrDefault();
-			if ((await _mediator.Send(new GetUsersQuery(), token)).Where(u => u.Email.Equals(email)).FirstOrDefault() != null)
+			if ((await _mediator.Send(new GetUsersQuery(), token))
+				.Where(u => u.Email.Equals(email)).FirstOrDefault() != null)
 			{
 				return true;
 			}
 			return false;
 		}
 
-		//public async Task<string> GetUserRoleNameByIdAsync(Guid id, CancellationToken token)
-		//{
-		//    var userRole = (await _context.Users
-		//        .Include(user => user.Role)
-		//        .SingleOrDefaultAsync(user => user.UserId == id))?.Role.RoleName;
+        public async Task<bool> CheckIsNameRegisteredAsync(string name, CancellationToken token)
+        {
+            if ((await _mediator.Send(new GetUsersQuery(), token))
+				.Where(u => u.Name.Equals(name)).FirstOrDefault() != null)
+            {
+                return true;
+            }
+            return false;
+        }
 
-		//    return userRole;
-		//}
+        //public async Task<string> GetUserRoleNameByIdAsync(Guid id, CancellationToken token)
+        //{
+        //    var userRole = (await _context.Users
+        //        .Include(user => user.Role)
+        //        .SingleOrDefaultAsync(user => user.UserId == id))?.Role.RoleName;
 
-		public async Task<string> GetUserRoleNameByEmailAsync(string email, CancellationToken token)
+        //    return userRole;
+        //}
+
+        public async Task<string> GetUserRoleNameByEmailAsync(string email, CancellationToken token)
 		{
 			return await _mediator.Send(new GetRoleNameByIdQuery()
 			{
 				RoleId = (await _mediator.Send(new GetUsersQuery(), token))
 				.Where(u => u.Email.Equals(email)).FirstOrDefault().RoleId
-			});
+			}, token);
 		}
 
 		public async Task<string> GetUserNameByEmailAsync(string email, CancellationToken token)
@@ -114,7 +117,7 @@ namespace NewsAggregatorApp.Services
 				.Where(u => u.Email.Equals(email)).FirstOrDefault().Name;
 		}
 
-		public async Task<Guid> GetUserIdByEmailAsync(string email, CancellationToken token = default)
+		public async Task<Guid> GetUserIdByEmailAsync(string email, CancellationToken token)
 		{
 			return (await _mediator.Send(new GetUsersQuery(), token))
 				.Where(u => u.Email.Equals(email)).FirstOrDefault().UserDtoId;
@@ -125,14 +128,13 @@ namespace NewsAggregatorApp.Services
 			return await _mediator.Send(new GetUserLikesQuery() { UserName = userName }, token);
 		}
 
-		public async Task AddCommentAsync(CommentModel comment, string name, CancellationToken token = default)
+		public async Task AddCommentAsync(CommentModel comment, CancellationToken token)
 		{
 			comment.CommentModelId = Guid.NewGuid();
 			comment.UserId = (await _mediator.Send(new GetUsersQuery(), token))
-					.Where(u => u.Name.Equals(name)).FirstOrDefault().UserDtoId;
+					.Where(u => u.Name.Equals(comment.UserName)).FirstOrDefault().UserDtoId;
 			await _mediator.Send(new AddCommentCommand() { Comment = comment }, token);
 		}
-
 
 		//public async Task<string> GetUserRoleByNameAsync(string name, CancellationToken token)
 		//{
@@ -154,9 +156,9 @@ namespace NewsAggregatorApp.Services
 		//    return await _mediator.Send(new GetUserDataByRefreshTokenQuery() { ToklenId = id }, cancellationToken);
 		//}
 
-		public async Task<UserDto[]> GetAllUsers()
+		public async Task<UserDto[]> GetAllUsers(CancellationToken token)
 		{
-			return await _mediator.Send(new GetUsersQuery());
+			return await _mediator.Send(new GetUsersQuery(), token);
 		}
 
 		public async Task ChangeUserRoleAsync(Guid id, CancellationToken token)
@@ -174,9 +176,42 @@ namespace NewsAggregatorApp.Services
 			}
 		}
 
-		public async Task<UserTokenDto> GetUserDataByRefreshToken(Guid id, CancellationToken cancellationToken)
+		public async Task<UserTokenDto> GetUserDataByRefreshTokenAsync(Guid id, CancellationToken cancellationToken)
 		{
-			return await _mediator.Send(new GetUserDataByRefreshTokenQuery() { ToklenId = id }, cancellationToken);
+			return await _mediator.Send(
+				new GetUserDataByRefreshTokenQuery() { ToklenId = id }, cancellationToken);
 		}
-	}
+
+		public async Task<UserDto> GetUserByNameAsync(string username, CancellationToken cancellationToken)
+		{
+			return (await _mediator.Send(
+				new GetUsersQuery() { }, cancellationToken))
+				.Where(u=>u.Name.Equals(username))
+				.First();			
+		}
+
+        public async Task EditUserAsync(UserDto user, CancellationToken cancellationToken)
+        {
+			await _mediator.Send(
+				new EditUserCommand() {UserDto=user }, cancellationToken);
+		}
+
+        public async Task ChangePasswordAsync(string email, string passwordHash, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(
+                new ChangePasswordCommand() { Email = email, PasswordHash = passwordHash }, cancellationToken);
+        }
+
+        public async Task LikeAsync(Guid id, string name, CancellationToken token)
+        {
+            var like = new LikeDto()
+            {
+                LikeDtoId = Guid.NewGuid(),
+                UserId = (await _mediator.Send(new GetUsersQuery(), token))
+                    .Where(u => u.Name.Equals(name)).FirstOrDefault().UserDtoId,
+                ArticleId = id,
+            };
+            await _mediator.Send(new LikeCommand() { likeDto = like }, token);
+        }
+    }
 }

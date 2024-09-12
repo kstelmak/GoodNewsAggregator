@@ -11,13 +11,13 @@ namespace NewsAggregatorApp.Services
             _articleService = articleService;
         }
 
-        public async Task SetArticleRateAsync(Guid articleId, double newRate, CancellationToken token = default)
+        public async Task SetArticleRateAsync(Guid articleId, double newRate, CancellationToken token)
         {
             if (newRate is > 5 or < -5)
             {
                 throw new ArgumentException("Incorrect rate", nameof(newRate));
             }
-            var article = await _articleService.GetArticleByIdAsync(articleId);
+            var article = await _articleService.GetArticleByIdAsync(articleId, token);
             if (article != null)
             {
                 await _articleService.SetRateAsync(articleId, newRate, token);

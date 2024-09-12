@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NewsAggregatorApp.Mappers;
+using NewsAggregatorApp.Services;
 using NewsAggregatorApp.Services.Abstractions;
 using NewsAggregatorDTOs;
+using NewsAggregatorMVCModels;
 using System.Drawing.Printing;
 
 namespace NewsAggregatorApi.Controllers
@@ -13,57 +15,72 @@ namespace NewsAggregatorApi.Controllers
 	public class ArticleController : ControllerBase
 	{
 		private readonly IArticleService _articleService;
-		private readonly ILogger<ArticleController> _logger;
+        private readonly IUserService _userService;
+        private readonly ILogger<ArticleController> _logger;
 
-		public ArticleController(IArticleService articleService, ILogger<ArticleController> logger)
+		public ArticleController(IArticleService articleService, IUserService userService, ILogger<ArticleController> logger)
 		{
 			_articleService = articleService;
+			_userService = userService;
 			_logger = logger;
 		}
 
 		[HttpGet]
-		public async Task<IActionResult> Get(int? pageNumber = 1, int? pageSize = 10)
-		{
-			if (pageSize.HasValue && pageNumber.HasValue)
+        //gets articles by pageSize & pageNumber or gets article details
+        public async Task<IActionResult> Get(Guid? id, int? pageNumber, int? pageSize, CancellationToken token = default)
+		{			
+            if (pageSize.HasValue && pageNumber.HasValue)//index
+            {
+                int minRate = -5;
+                if (HttpContext.User.Identity.IsAuthenticated)
+                {
+                    minRate = (await _userService.GetUserByNameAsync(HttpContext.User.Identity.Name, token)).MinRate;
+                }
+				return Ok(await _articleService.GetArticlesAsync(pageNumber, pageSize, minRate, token));
+            }
+			else if (id != Guid.Empty)//details
 			{
-				return Ok(await _articleService.GetArticlesAsync(pageNumber, pageSize));
-			}
-			return NotFound();
+                var model = await _articleService.GetDetailsAsync((Guid)id, token);
+
+				if(model != null)
+				{
+                    var like = (await _userService.GetUserLikesAsync(HttpContext.User.Identity.Name, token))
+						.Where(l => l.ArticleId == id).FirstOrDefault();
+                    if (like != null)
+                    {
+                        model.Article.IsLiked = true;
+                    }
+                    return Ok(model);
+                }
+				else
+				{
+					return NotFound();
+				}
+            }
+			return BadRequest();
 		}
 
 		[HttpPost]
 		[Authorize(Roles = "Admin")]
-		public async Task<IActionResult> Post(ArticleDto articleDto)
+        //Create article
+        public async Task<IActionResult> Post(ArticleModel articleModel, CancellationToken token = default)
 		{
-			//in mvc app Create method receives a model wich is checked using if (ModelState.IsValid){}
-			//this method receives DTO
-			//is it ok to validate like this??			
-			if (articleDto.ArticleDtoId.Equals(Guid.Empty) ||
-				articleDto.CategoryId.Equals(Guid.Empty) ||
-				articleDto.Title == null ||articleDto.Title.Length<3 ||
-				articleDto.Text == null ||articleDto.Text.Length < 3 ||
-				articleDto.Rate>5|| articleDto.Rate < -5 ||
-				articleDto.SourceId.Equals(Guid.Empty))
+			if(ModelState.IsValid)
 			{
-				await _articleService.AddArticleAsync(articleDto);
-				return Created();
-			}
-			return BadRequest();
-		}
+                await _articleService.AddArticleAsync(ArticleMapper.ArticleModelToArticleDto (articleModel), token);
+                return Created();
+            }
+            return BadRequest();
+        }
 
-		[HttpPatch]
+		[HttpPut]
 		[Authorize(Roles = "Admin")]
-		public async Task<IActionResult> Patch(ArticleDto articleDto)
+        //edit article
+        public async Task<IActionResult> Put(ArticleModel articleModel, CancellationToken token = default)
 		{
-			//where should the DTO validation method be placed and how best to write it?
-			if (articleDto.ArticleDtoId.Equals(Guid.Empty) ||
-				articleDto.CategoryId.Equals(Guid.Empty) ||
-				articleDto.Title == null || articleDto.Title.Length < 3 ||
-				articleDto.Text == null || articleDto.Text.Length < 3 ||
-				articleDto.Rate > 5 || articleDto.Rate < -5 ||
-				articleDto.SourceId.Equals(Guid.Empty))
+			if (ModelState.IsValid)
 			{
-				await _articleService.EditArticleAsync(articleDto);
+				await _articleService.EditArticleAsync(ArticleMapper.ArticleModelToArticleDto(articleModel), token);
 				return Ok();
 			}
 			return BadRequest();
@@ -71,9 +88,10 @@ namespace NewsAggregatorApi.Controllers
 
 		[HttpDelete("{id}")]
 		[Authorize(Roles = "Admin")]
-		public async Task<IActionResult> Delete(Guid id)
+        //Delete article
+        public async Task<IActionResult> Delete(Guid id, CancellationToken token = default)
 		{
-			await _articleService.DeleteArticleAsync(id);
+			await _articleService.DeleteArticleAsync(id, token);
 			return Ok();
 		}
 	}

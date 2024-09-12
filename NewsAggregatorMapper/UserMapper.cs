@@ -25,5 +25,9 @@ namespace NewsAggregatorMapper
 
         [MapProperty(nameof(UserDto.UserDtoId), nameof(UserModel.UserModelId))]
         public static partial UserModel? UserDtoToUserModel(UserDto? userDto);
+
+        [MapProperty(nameof(UserModel.UserModelId), nameof(UserDto.UserDtoId))]
+        public static partial UserDto? UserModelToUserDto(UserModel? userDto);
+
     }
 }

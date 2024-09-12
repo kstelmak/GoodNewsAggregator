@@ -16,6 +16,7 @@ using NewsAggregatorCQS.Queries.Comments;
 using NewsAggregatorCQS.Queries.User;
 using NewsAggregatorDTOs;
 using NewsAggregatorMVCModels;
+using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -32,27 +33,26 @@ namespace NewsAggregatorApp.Services
 
 	public class ArticleService : IArticleService
 	{
-		//private readonly AggregatorContext _context;
 		private readonly ISourceService _sourceService;
 		private readonly IMediator _mediator;
 		private readonly ILogger<ArticleService> _logger;
 
-		public ArticleService(/*AggregatorContext context,*/ ILogger<ArticleService> logger, ISourceService sourceService, IMediator mediator)
+		public ArticleService(ILogger<ArticleService> logger, ISourceService sourceService, IMediator mediator)
 		{
-			//_context = context;
 			_logger = logger;
 			_sourceService = sourceService;
 			_mediator = mediator;
 		}
 
-		public async Task<ArticleDto?[]> GetArticlesAsync(int? pageNumber, int? pageSize, CancellationToken token = default)
+		public async Task<ArticleDto?[]> GetArticlesAsync(int? pageNumber, int? pageSize, int? minRate, CancellationToken token)
 		{
 			try
 			{
-				return (await _mediator.Send(new GetArticlesQuery()))
-					.OrderBy(article => article.Title) //order by title
+				return (await _mediator.Send(new GetArticlesQuery(), token))
+					.Where(a=>a.Rate>=minRate)
+					.OrderBy(article => article.Title)
 					.Skip((int)((pageNumber - 1) * pageSize))
-					.Take((int)pageSize)// take up to pageSize 
+					.Take((int)pageSize)
 					.ToArray();
 			}
 			catch (Exception e)
@@ -69,38 +69,37 @@ namespace NewsAggregatorApp.Services
 		//        .ToArrayAsync();
 		//}//?????????
 
-		public async Task<ArticleDto?> GetArticleByIdAsync(Guid id)
+		public async Task<ArticleDto?> GetArticleByIdAsync(Guid id, CancellationToken token)
 		{
-			return await _mediator.Send(new GetArticleByIdQuery() { ArticleId = id });
+			return await _mediator.Send(new GetArticleByIdQuery() { ArticleId = id }, token);
 		}
 
-		public async Task AddArticleAsync(ArticleDto articleDto)
+		public async Task AddArticleAsync(ArticleDto articleDto, CancellationToken token)
 		{
 			await _mediator.Send(new AddArticleCommand()
 			{
 				ArticleDto = articleDto
-			});
+			}, token);
 		}
 
-		public async Task DeleteArticleAsync(Guid id)
+		public async Task DeleteArticleAsync(Guid id, CancellationToken token)
 		{
 
 			await _mediator.Send(new DeleteArticleCommand()
 			{
 				ArticleId = id
-			});
+			}, token);
 		}
 
-		public async Task EditArticleAsync(ArticleDto updatedArticleDto)
+		public async Task EditArticleAsync(ArticleDto updatedArticleDto, CancellationToken token)
 		{
-			await _mediator.Send(new EditArticleCommand() { ArticleDto = updatedArticleDto });
+			await _mediator.Send(new EditArticleCommand() { ArticleDto = updatedArticleDto }, token);
 		}
 
-		public async Task<int> GetArticlesCountAsync()
+		public async Task<int> GetArticlesCountAsync(CancellationToken token)
 		{
-			return (await _mediator.Send(new GetArticlesQuery())).Length;
+			return (await _mediator.Send(new GetArticlesQuery(), token)).Length;
 		}
-
 
 		public async Task AggregateAsync(CancellationToken token)
 		{
@@ -116,7 +115,7 @@ namespace NewsAggregatorApp.Services
 					}
 					await Task.WhenAll(tasks);
 
-					var articles = await GetArticlesWithoutTextAsync();
+					var articles = await GetArticlesWithoutTextAsync(token);
 					foreach (var article in articles)
 					{
 						await UpdateTextAsync(article, token);
@@ -150,7 +149,7 @@ namespace NewsAggregatorApp.Services
 							CategoriesNames = allCategories
 						}, token);
 
-						var categories = await _mediator.Send(new GetCategoriesQuery());
+						var categories = await _mediator.Send(new GetCategoriesQuery(), token);
 						Dictionary<string, Guid> categoriesNames = new Dictionary<string, Guid>();
 						foreach (var category in categories)
 						{
@@ -208,11 +207,11 @@ namespace NewsAggregatorApp.Services
 			}
 		}
 
-		/*private*/	public async Task<ArticleDto[]> GetArticlesWithoutTextAsync()
+		/*private*/	public async Task<ArticleDto[]> GetArticlesWithoutTextAsync(CancellationToken token)
 		{
 			try
 			{
-				return (await _mediator.Send(new GetArticlesQuery()))
+				return (await _mediator.Send(new GetArticlesQuery(), token))
 					.Where(article => string.IsNullOrEmpty(article.Text)).ToArray();
 			}
 			catch (Exception e)
@@ -236,7 +235,7 @@ namespace NewsAggregatorApp.Services
 					{
 						ArticleId = articleDto.ArticleDtoId,
 						NewText = articleNode.InnerText.Trim()
-					});
+					}, token);
 					break;
 				}
 			}
@@ -257,28 +256,16 @@ namespace NewsAggregatorApp.Services
 
 		public async Task SetRateAsync(Guid id, double newRate, CancellationToken token)
 		{
-			await _mediator.Send(new SetRateCommand() { ArticleId = id, newRate = newRate });
-		}
+			await _mediator.Send(new SetRateCommand() { ArticleId = id, newRate = newRate }, token);
+        }
 
-		public async Task LikeAsync(Guid id, string name)
-		{
-			var like = new LikeDto()
-			{
-				LikeDtoId = Guid.NewGuid(),
-				UserId = (await _mediator.Send(new GetUsersQuery()))
-					.Where(u => u.Name.Equals(name)).FirstOrDefault().UserDtoId,
-				ArticleId = id,
-			};
-			await _mediator.Send(new LikeCommand() { likeDto = like });
-		}
-
-		public async Task<ArticleWithCommentsModel> GetDetailsAsync(Guid id)
+		public async Task<ArticleWithCommentsModel> GetDetailsAsync(Guid id, CancellationToken token)
 		{
 			return new ArticleWithCommentsModel()
 			{
 				Article = ArticleMapper.ArticleDtoToArticleModel
-					(await GetArticleByIdAsync(id)),
-				Comments = await _mediator.Send(new GetCommentsOnArticleQuery() { ArticleId = id })
+					(await GetArticleByIdAsync(id, token)),
+				Comments = await _mediator.Send(new GetCommentsOnArticleQuery() { ArticleId = id }, token)
 			};
 		}
 	}

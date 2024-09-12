@@ -24,7 +24,7 @@ namespace NewsAggregatorApi.Controllers
 		{
 			if (await _tokenService.RefreshTokenCorrect(refreshTokenId, cancellationToken))
 			{
-				var user = await _userService.GetUserDataByRefreshToken(refreshTokenId, cancellationToken);
+				var user = await _userService.GetUserDataByRefreshTokenAsync(refreshTokenId, cancellationToken);
 				if (user != null)
 				{
 					var data = await GenerateTokenPair(user.Id, user.RoleName);

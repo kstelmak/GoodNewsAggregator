@@ -50,8 +50,12 @@
 
     <div class="mb-2 col-12 col-lg-7">
         <label class="form-label"asp-for="Article.Rate"></label>
-        <input class="form-control" asp-for="Article.Rate" type="number" />
-        <span class="text-danger" asp-validation-for="Article.Rate"></span>
+        <select class="form-control" asp-for="Article.Rate">
+            @for (int i = -5; i <= 5; i++)
+            {
+                <option value=@i>@i</option>
+            }
+        </select>
     </div>
 
     <div class="mb-2 col-12 col-lg-7">
