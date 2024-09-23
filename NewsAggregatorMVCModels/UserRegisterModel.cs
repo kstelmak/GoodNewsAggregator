@@ -9,16 +9,15 @@ namespace NewsAggregatorMVCModels
 {
     public class UserRegisterModel
     {
-        [Required]
+        [Required(ErrorMessage = "Name is required.")]
         [Remote("CheckName", "User", HttpMethod = "POST")]
-
         public string Name { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Email is required.")]
         [Remote("CheckEmail", "User", HttpMethod = "POST")]
         public string Email { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Password is required.")]
         public string Password { get; set; }
 
         [System.ComponentModel.DataAnnotations.Compare(nameof(Password))]

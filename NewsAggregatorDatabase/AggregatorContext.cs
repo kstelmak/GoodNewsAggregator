@@ -122,6 +122,9 @@ namespace NewsAggregatorApp.Entities
                 entity.Property(e => e.RoleId)
                     .HasDefaultValue(Guid.Parse("1FD82CBA-0198-4520-8988-C147C9AD70BE"));
 
+                entity.Property(e => e.IsBlocked)
+                    .HasDefaultValue(false);
+
                 entity.HasOne(d => d.Role)
                     .WithMany(p => p.Users)
                     .HasForeignKey(d => d.RoleId)

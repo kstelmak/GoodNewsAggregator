@@ -15,6 +15,8 @@ namespace NewsAggregatorApp.Entities
         public double? Rate { get; set; }
         public Guid SourceId { get; set; }
         public Source? Source { get; set; }
+        public DateTime CreationDate { get; set; }
+
         public ICollection<Comment> Comments { get; set; }
         public ICollection<Like> Likes { get; set; }
 

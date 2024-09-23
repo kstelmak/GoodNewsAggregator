@@ -1,5 +1,7 @@
 ﻿@model UserRegisterModel
-
+@{
+    ViewData["Title"] = "Register";
+}
 <h1>
     User Register
 </h1>
@@ -7,7 +9,7 @@
     <div class="mb-2 col-12 col-lg-7">
         <label class="form-label" asp-for="Email"></label>
         <input class="form-control" required asp-for="Email" />
-        <span asp-validation-for="Email"></span>
+        <span asp-validation-for="Email" class="text-danger  d-block" style="min-height: 1.5rem"></span>
     </div>
     <div class="mb-2 col-12 col-lg-7">
         <div>
@@ -17,7 +19,7 @@
             <input class="form-control" asp-for="Name" />
         </div>
         <div>
-            <span asp-validation-for="Name"></span>
+            <span asp-validation-for="Name" class="text-danger  d-block" style="min-height: 1.5rem"></span>
         </div>
     </div>
     <div class="mb-2 col-12 col-lg-7">
@@ -28,18 +30,18 @@
             <input class="form-control" type="password" asp-for="Password" />
         </div>
         <div>
-            <span asp-validation-for="Password"></span>
+            <span asp-validation-for="Password" class="text-danger  d-block" style="min-height: 1.5rem"></span>
         </div>
     </div>
     <div class="mb-2 col-12 col-lg-7">
         <div>
-            <label class="form-label" asp-for="PasswordConfirmation"></label>
+            <label class="form-label" asp-for="PasswordConfirmation">Confirm password</label>
         </div>
         <div>
             <input class="form-control" type="password" asp-for="PasswordConfirmation" />
         </div>
         <div>
-            <span asp-validation-for="PasswordConfirmation"></span>
+            <span asp-validation-for="PasswordConfirmation" class="text-danger  d-block" style="min-height: 1.5rem"></span>
         </div>
     </div>
     <div class="mb-2 col-12 col-lg-7">

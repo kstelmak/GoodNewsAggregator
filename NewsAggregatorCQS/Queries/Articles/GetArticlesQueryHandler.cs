@@ -22,16 +22,20 @@ namespace NewsAggregatorCQS.Queries.Articles
 
         public async Task<ArticleDto[]> Handle(GetArticlesQuery query, CancellationToken cancellationToken)
         {
-            var a = _context.Articles
+    //        var a = _context.Articles
+    //            .Include("Source")
+				//.Include("Category")
+				//.Include("Likes")
+				//.Select(ArticleMapper.ArticleToArticleDto).ToArray();
+
+
+    //        return _context.Articles.Select(ArticleMapper.ArticleToArticleDto).ToArray();
+
+            return _context.Articles
                 .Include("Source")
-				.Include("Category")
-				.Include("Likes")
-				.Select(ArticleMapper.ArticleToArticleDto).ToArray();
-
-            //Include("_context.Sources").Select(ArticleMapper.ArticleToArticleDto).ToArray();
-
-            //Select(ArticleMapper.ArticleToArticleDto).ToArray();
-            return _context.Articles.Select(ArticleMapper.ArticleToArticleDto).ToArray();
+                .Include("Category")
+                .Include("Likes")
+                .Select(ArticleMapper.ArticleToArticleDto).ToArray();
         }
     }
 }

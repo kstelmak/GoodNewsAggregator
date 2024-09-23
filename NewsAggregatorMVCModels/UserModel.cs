@@ -17,5 +17,8 @@ namespace NewsAggregatorMVCModels
 		public string RoleName { get; set; }
         public string Email { get; set; }
         public int MinRate { get; set; }
-	}
+
+		public bool IsBlocked { get; set; }
+        public DateTime? UnblockTime { get; set; }
+    }
 }

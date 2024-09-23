@@ -1,4 +1,7 @@
 ﻿@model UserModel
+@{
+    ViewData["Title"] = "User info";
+}
 
 <h1>
     User info
@@ -27,4 +30,6 @@
 </div>
 <div class="mb-2 col-12 col-lg-7">
     <a asp-action="EditUserInfo" asp-route-username="@Context.User.Identity.Name" class="btn btn-primary">Edit</a>
+    <a asp-action="DeleteUser" asp-route-username="@Context.User.Identity.Name" class="btn btn-danger">Delete</a>
+
 </div>

@@ -7,6 +7,7 @@ using Serilog;
 using Serilog.Events;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Hangfire;
 
 namespace NewsAggregatorApp
 {
@@ -30,10 +31,24 @@ namespace NewsAggregatorApp
                     .Enrich.FromLogContext()
                     .WriteTo.File("log.log"));
 
+
+
+            builder.Services.AddDistributedMemoryCache(); // Для хранения данных сессии в памяти
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(30); // Настройка времени жизни сессии
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
+
+
+
+
             builder.Services.AddDbContext<AggregatorContext>(
                 options => options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
             
             builder.Services.AddScoped<IArticleService, ArticleService>();
+            builder.Services.AddScoped<IArticleRateService, ArticleRateService>();
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<ISourceService, SourceService>();
             builder.Services.AddScoped<IUserService, UserService>();
@@ -49,7 +64,14 @@ namespace NewsAggregatorApp
             });
             builder.Services.AddAuthorization();
 
-            var app = builder.Build();
+			builder.Services.AddHangfire(conf => conf
+				.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+				.UseSimpleAssemblyNameTypeSerializer()
+				.UseRecommendedSerializerSettings()
+				.UseSqlServerStorage(builder.Configuration.GetConnectionString("Default")));
+			builder.Services.AddHangfireServer();
+
+			var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
@@ -66,6 +88,10 @@ namespace NewsAggregatorApp
             app.UseSerilogRequestLogging();
             app.UseAuthentication();
             app.UseAuthorization();
+
+			app.UseHangfireDashboard();
+			app.UseSession(); // Добавляем использование сессий
+
 
             app.MapControllerRoute(
                 name: "default",

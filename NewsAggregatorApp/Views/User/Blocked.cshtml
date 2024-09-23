@@ -1,0 +1,12 @@
+﻿@model UserBlockedModel
+@{
+    ViewData["Title"] = "Blocked";
+}
+
+<h1>
+    Blocked
+</h1>
+<div class="mb-2 col-12 col-lg-7">
+       <h5 class="text-danger">You are blocked due to multiple unsuccessful attempts</h5>
+    <h5 class="text-danger form-label">You can try again after @Model.UnblockTime</h5>
+</div>

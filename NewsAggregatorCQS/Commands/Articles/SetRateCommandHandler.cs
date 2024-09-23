@@ -31,6 +31,7 @@ namespace NewsAggregatorCQS.Commands.Articles
             if (article != null)
             {
                 article.Rate = command.newRate;
+                await _dbContext.SaveChangesAsync();
 
                 _logger.LogInformation($"SetRate. ArticleId = {article.ArticleId}, rate = {command.newRate}");
             }

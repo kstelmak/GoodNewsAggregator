@@ -20,20 +20,28 @@ namespace NewsAggregatorApi.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Adds comment to article. Authorized users only
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="201">Like created successfully</response>
+        /// <response code="401">Unauthorized. Authorized users only</response>
+        /// <response code="404">User with this name or article with this id not found</response>
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> Post(Guid articleId, string username, CancellationToken token = default)
         {
-            if(articleId!=Guid.Empty && !String.IsNullOrEmpty(username))
+
+            if (await _articleService.GetArticleByIdAsync(articleId, token) == null)
             {
-                if (await _articleService.GetArticleByIdAsync(articleId, token) != null)
-                {
-                    await _userService.LikeAsync(articleId, username, token);
-                    return Ok();
-                }
-                return NotFound("article with such id does not exist");
+                return NotFound("article with this id not found");
             }
-            return BadRequest();
+            if (await _userService.GetUserByNameAsync(username, token) == null)
+            {
+                return NotFound("user with this name not foundt");
+            }
+            await _userService.LikeAsync(articleId, username, token);
+            return Created();
         }
     }
 }

@@ -29,7 +29,10 @@ namespace NewsAggregatorCQS.Queries.Articles
                 .FirstOrDefaultAsync(a => a.ArticleId == query.ArticleId);            
 
             var artDto = ArticleMapper.ArticleToArticleDto(article);
-            artDto.LikesCount = article.Likes.Count();
+            if(artDto != null) 
+            {
+                artDto.LikesCount = article.Likes.Count();
+            }
             return artDto;
         }
     }

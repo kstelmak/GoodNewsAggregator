@@ -1,4 +1,3 @@
-
 using NewsAggregatorApp.Services.Abstractions;
 using NewsAggregatorApp.Services;
 using Serilog.Events;
@@ -33,29 +32,32 @@ namespace NewsAggregatorApi
 				options.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1.0" });
 				options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory,
 					$"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
-				//options.AddSecurityDefinition("Bearer",
-				//    new OpenApiSecurityScheme
-				//    {
-				//        Description =
-				//            "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-				//        Name = "Authorization",
-				//        In = ParameterLocation.Header,
-				//        Type = SecuritySchemeType.ApiKey,
-				//        Scheme = "Bearer"
-				//    });
-				//options.AddSecurityRequirement(new OpenApiSecurityRequirement
-				//{
-				//    {
-				//        new OpenApiSecurityScheme
-				//        {
-				//            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
-				//        },
-				//        new string[] { }
-				//    }
-				//});
+
+				options.AddSecurityDefinition("Bearer",
+					new OpenApiSecurityScheme
+					{
+						Description =
+							"JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+						Name = "Authorization",
+						In = ParameterLocation.Header,
+						Type = SecuritySchemeType.ApiKey,
+						Scheme = "Bearer"
+					});
+				options.AddSecurityRequirement(new OpenApiSecurityRequirement
+				{
+					{
+						new OpenApiSecurityScheme
+						{
+							Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+						},
+						new string[] { }
+						//new List<string>()
+                    }
+				});
 			});
 
-			builder.Services.AddScoped<IArticleService, ArticleService>();
+            builder.Services.AddScoped<IArticleRateService, ArticleRateService>();
+            builder.Services.AddScoped<IArticleService, ArticleService>();
 			builder.Services.AddScoped<ICategoryService, CategoryService>();
 			builder.Services.AddScoped<ISourceService, SourceService>();
 			builder.Services.AddScoped<IUserService, UserService>();

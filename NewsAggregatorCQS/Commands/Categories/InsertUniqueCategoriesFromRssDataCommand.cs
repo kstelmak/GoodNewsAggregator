@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 namespace NewsAggregatorCQS.Commands.Categories
 {
     public class InsertUniqueCategoriesFromRssDataCommand : IRequest
-    {
-        //public CategoryDto[] Categories { get; set; }
+    {       
         public string[] CategoriesNames { get; set; }
     }
 }

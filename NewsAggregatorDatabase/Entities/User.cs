@@ -10,7 +10,8 @@
         public string PasswordHash { get; set; }
         public string SecurityStamp { get; set; }
 		public int MinRate { get; set; }
-
+        public bool IsBlocked { get; set; }
+        public DateTime? UnblockTime { get; set; }
 
 		public ICollection<Comment> Comments { get; set; }
         public ICollection<Like> Likes { get; set; }

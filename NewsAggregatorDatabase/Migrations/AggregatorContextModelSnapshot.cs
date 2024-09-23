@@ -31,6 +31,9 @@ namespace NewsAggregatorDatabase.Migrations
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
@@ -173,6 +176,11 @@ namespace NewsAggregatorDatabase.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsBlocked")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<int>("MinRate")
                         .HasColumnType("int");
 
@@ -193,6 +201,9 @@ namespace NewsAggregatorDatabase.Migrations
                     b.Property<string>("SecurityStamp")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UnblockTime")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("UserId");
 

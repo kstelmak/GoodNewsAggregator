@@ -18,6 +18,9 @@ namespace NewsAggregatorApp.Mappers
         [MapProperty(nameof(ArticleDto.ArticleDtoId), nameof(ArticleModel.ArticleModelId))]
         public static partial ArticleModel? ArticleDtoToArticleModel(ArticleDto? articleDto);
 
+        [MapProperty(nameof(ArticleDto.ArticleDtoId), nameof(ArticlePreviewModel.ArticlePreviewModelId))]
+        public static partial ArticlePreviewModel? ArticleDtoToArticlePreviewModel(ArticleDto? articleDto);
+
         [MapProperty(nameof(ArticleDto.ArticleDtoId), nameof(Article.ArticleId))]
         public static partial Article? ArticleDtoToArticle(ArticleDto? articleDto);
 

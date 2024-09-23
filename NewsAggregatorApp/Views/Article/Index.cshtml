@@ -1,5 +1,7 @@
 ﻿@model ArticleWithPaginationModel 
-
+@{
+    ViewData["Title"] = "Articles";
+}
 <h1>
     All articles
 </h1>
@@ -11,8 +13,6 @@
         <a asp-controller="Article" asp-action="Aggregate" class="btn btn-primary">Aggregate</a>
 	</div>
 }
-
-
 
 @if (Model.Articles.Length != 0) @*what is the difference from Model.Articles.Any()*@
 {
@@ -27,5 +27,12 @@
     <pagination model="new PaginationModel(){PageNumber = 0, PageSize = 3, TotalPages = @Model.Pagination.TotalPages}"></pagination>
 *@
 
-
+<script>
+    let imgs = document.getElementsByTagName("img")
+    for (let i of imgs) {
+        i.style.width=40 + "%"
+        i.style.display="block"
+        i.classList.add("m-2")
+    }
+</script>
 

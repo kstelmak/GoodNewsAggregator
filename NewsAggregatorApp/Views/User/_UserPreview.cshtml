@@ -2,9 +2,9 @@
 
 <div class="card ">
 	<div class="card-body">
-		<div class="row">
+		<div class="d-flex flex-row row align-items-center">
 
-			<div class="col-10">
+			<div class="col-7">
 				<h5 class="card-title">@Model.Name</h5>
 				<div>@Model.UserModelId</div>
 			</div>
@@ -13,12 +13,23 @@
 					@Model.RoleName
 				</div>
 			</div>
-			<div class="col-1">
-
+			<div class="col-2">
+				@if (Model.IsBlocked == true)
+				{
+					<div class="d-flex flex-column align-items-center">
+						<div>
+							Blocked
+						</div>
+						<div>
+							@Model.UnblockTime
+						</div>
+					</div>
+				}
+			</div>
+			<div class="col-2 ">
 				@if (Model.Name != Context.User.Identity.Name)
 				{
 					<a asp-action="ChangeRole" asp-route-id="@Model.UserModelId" class="btn btn-primary">Change Role</a>
-
 				}
 			</div>
 		</div>

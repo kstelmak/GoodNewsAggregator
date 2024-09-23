@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <BaseOutputPath></BaseOutputPath>
+    <BaseIntermediateOutputPath></BaseIntermediateOutputPath>
+    <DocumentationFile>C:\Gd-ND2-17-24_Промышленное программирование на ASP.NET_Сизов Алексей\Project\NewsAggregatorApp\NewsAggregatorApi\bin\Debug\net8.0\NewsAggregatorApi.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

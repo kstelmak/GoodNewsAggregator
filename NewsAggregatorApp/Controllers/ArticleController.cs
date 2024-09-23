@@ -43,8 +43,8 @@ namespace NewsAggregatorApp.Controllers
                 }
                 var articles = (await _articleService.GetArticlesAsync(pageNumber, pageSize, minRate, token)).ToArray();
 
-                // var articlesCount = await _articleService.GetArticlesCountAsync();
-                var articlesCount = articles.Count();
+                var articlesCount = await _articleService.GetArticlesCountAsync(minRate, token);
+                //var articlesCount = articles.Count();
 
                 var pagination = new PaginationModel()
                 {
@@ -57,7 +57,7 @@ namespace NewsAggregatorApp.Controllers
 
                 var model = new ArticleWithPaginationModel()
                 {
-                    Articles = articles.Select(dto => ArticleMapper.ArticleDtoToArticleModel(dto)).ToArray(),
+                    Articles = articles.Select(dto => ArticleMapper.ArticleDtoToArticlePreviewModel(dto)).ToArray(),
                     Pagination = pagination
                 };
 
@@ -253,5 +253,21 @@ namespace NewsAggregatorApp.Controllers
                 return StatusCode(500, new { Message = e.Message });
             }
         }
-    }
+
+		[HttpGet]
+		[Authorize(Roles = "Admin")]
+		public async Task<IActionResult> AggregateInBackground(CancellationToken token = default)
+		{
+			try
+			{
+				await _articleService.AggregateInBackgroundAsync(token);
+				return RedirectToAction("Index");
+			}
+			catch (Exception e)
+			{
+				_logger.LogError(e.Message);
+				return StatusCode(500, new { Message = e.Message });
+			}
+		}
+	}
 }

@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NewsAggregatorCQS.Queries.Roles
+namespace NewsAggregatorCQS.Commands.User
 {
-    public class GetRoleNameByIdQuery : IRequest<string>
+    public class DeleteUserCommand : IRequest
     {
-        public Guid RoleId;
+        public string Username; 
     }
 }

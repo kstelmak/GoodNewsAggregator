@@ -25,15 +25,8 @@ namespace NewsAggregatorCQS.Commands.Categories
 
         public async Task Handle(InsertUniqueCategoriesFromRssDataCommand command, CancellationToken cancellationToken)
         {
-            //var existedCategoriesNames2 = _dbContext.Categories;
-            var existedCategoriesNames = _dbContext.Categories.Select(c => c.CategoryName).ToArray();
-
-
-            //var existedCategoriesNames = await _dbContext.Categories
-            //               .Select(c => c.CategoryName)
-            //               .ToArrayAsync(cancellationToken);
-            
-             var newUniqueCategoriesNames = command.CategoriesNames.Distinct()
+            var existedCategoriesNames = _dbContext.Categories.Select(c => c.CategoryName).ToArray();                        
+            var newUniqueCategoriesNames = command.CategoriesNames.Distinct()
                             .Where(c => !existedCategoriesNames.Contains(c))
                             .ToArray();
             if (newUniqueCategoriesNames.Length!=0)
@@ -45,14 +38,14 @@ namespace NewsAggregatorCQS.Commands.Categories
                 }).ToArray();
 
                 await _dbContext.Categories.AddRangeAsync(newUniqueCategories, cancellationToken);
-                //await _dbContext.SaveChangesAsync(cancellationToken);
-                _logger.LogInformation($"Added {newUniqueCategoriesNames.Length} categories");
+				await _dbContext.SaveChangesAsync(cancellationToken);
+				_logger.LogInformation($"Added {newUniqueCategoriesNames.Length} categories");
             }
             else
             {
                 _logger.LogInformation($"No categories added");
             }
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            
         }
     }
 }
